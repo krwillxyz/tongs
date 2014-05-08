@@ -58,9 +58,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"regexp"
 	"strconv"
 	"strings"
+    "log"
 )
 
 // ConfigFile is the representation of configuration settings.
@@ -269,8 +271,11 @@ func (c *ConfigFile) read(buf *bufio.Reader) error {
 // ReadConfigFile reads a file and returns a new configuration representation.
 // This representation can be queried with GetString, etc.
 func ReadConfigFile(fname string) (*ConfigFile, error) {
-
-	file, err := os.Open(fname)
+    usr, err := user.Current()
+    if err != nil {
+        log.Fatal( err )
+    }
+	file, err := os.Open(usr.HomeDir + "/" + fname)
 	if err != nil {
 		return nil, err
 	}
@@ -326,10 +331,13 @@ func (c *ConfigFile) write(buf *bufio.Writer, header string) error {
 // The desired file permissions must be passed as in os.Open.
 // The header is a string that is saved as a comment in the first line of the file.
 func (c *ConfigFile) WriteConfigFile(fname string, perm uint32, header string) error {
+   
+  	usr, err := user.Current()
+    if err != nil {
+        log.Fatal( err )
+    }
 
-	var file *os.File
-
-	file, err := os.OpenFile(fname, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(perm))
+	file, err := os.Create(usr.HomeDir + "/" + fname)
 	if err != nil {
 		return err
 	}
