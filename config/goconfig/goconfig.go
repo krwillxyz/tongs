@@ -61,6 +61,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+    "runtime"
 )
 
 // ConfigFile is the representation of configuration settings.
@@ -269,8 +270,8 @@ func (c *ConfigFile) read(buf *bufio.Reader) error {
 // ReadConfigFile reads a file and returns a new configuration representation.
 // This representation can be queried with GetString, etc.
 func ReadConfigFile(fname string) (*ConfigFile, error) {
-
-	file, err := os.Open(fname)
+   homeDir := userHomeDir()
+	file, err := os.Open(homeDir + "/" + fname)
 	if err != nil {
 		return nil, err
 	}
@@ -326,10 +327,10 @@ func (c *ConfigFile) write(buf *bufio.Writer, header string) error {
 // The desired file permissions must be passed as in os.Open.
 // The header is a string that is saved as a comment in the first line of the file.
 func (c *ConfigFile) WriteConfigFile(fname string, perm uint32, header string) error {
+   
+	homeDir := userHomeDir()
 
-	var file *os.File
-
-	file, err := os.OpenFile(fname, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(perm))
+	file, err := os.Create(homeDir + "/" + fname)
 	if err != nil {
 		return err
 	}
@@ -543,4 +544,15 @@ func (c *ConfigFile) GetBool(section string, option string) (bool, error) {
 	}
 
 	return value, nil
+}
+
+func userHomeDir() string {
+    if runtime.GOOS == "windows" {
+        home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+        if home == "" {
+            home = os.Getenv("USERPROFILE")
+        }
+        return home
+    }
+    return os.Getenv("HOME")
 }
