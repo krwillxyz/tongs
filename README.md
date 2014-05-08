@@ -29,7 +29,8 @@ Other Usage Examples:
 Setup
 --------------------------------
 Tongs is written in Golang. (http://golang.org/) Golang code can be compiled on 
-Windows, Mac, Linux etc.. just as long as Go is installed. 
+Windows, Mac, Linux etc.. just as long as Go is installed.
+(Download Go here: https://code.google.com/p/go/wiki/Downloads or 'brew install go' on a mac) 
 With go installed build tongs by calling:
     
     go build tongs.go
