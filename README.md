@@ -43,8 +43,9 @@ Configuration
 ---------------------
 
 In order to use tongs you will need to create a .tongs_config file that 
-exists in the same directory as your tongs executable you are calling.
-To generate a template file in the tongs directory, run:
+exists in your home directory on your system. This has currently been verified
+on Windows and OSX to write to the correct directory for the respective OS.
+To generate a template file in your home directory, run:
 
     tongs --create-config
 
@@ -93,7 +94,7 @@ https://docs.atlassian.com/fisheye-crucible/latest/wadl/crucible.html#rest-servi
 
 
 
-Future Development
+Future Development Ideas
 --------------------------------------------
 
 * Central, Github hosted, config files for teams. Teams could create one central list to manage who is on various code reviews for different languages.
@@ -104,4 +105,12 @@ Future Development
 * Mask Passwords
 * etc, etc, etc.....
 
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
 
