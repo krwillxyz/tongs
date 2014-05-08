@@ -53,12 +53,12 @@ func Help() {
 func ConfigFileCreated(ok bool) {
 	if(ok == true){
 		fmt.Println("Success!")
-		fmt.Println(".tongs_config was created successfully in the tongs directory")
+		fmt.Println(".tongs_config was created successfully your home directory")
 		fmt.Println("edit this file with your favorite text editor to get tongs")
 		fmt.Println("up and running. Check out the Github documentation for more info.")
 	} else {
 		fmt.Println("Error...")
-		fmt.Println(".tongs_config was unable to be created in the tongs directory.")
+		fmt.Println(".tongs_config was unable to be created in your home directory.")
 		fmt.Println("This could be due to a file permissions issue, or if the config")
 		fmt.Println("file already exists.")
 	}
