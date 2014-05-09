@@ -51,7 +51,7 @@ func CreateReview(reviewName string, templateName string, reviewLength int64, us
 	if id, ok := createReviewPost(json, token, baseUrl); ok {
 		
 		fmt.Println("Review Created:",id)
-		fmt.Println("("+baseUrl+"/viewer/cru/"+id+")")
+		fmt.Println("("+baseUrl+"/cru/"+id+")")
 		fmt.Println("Using Tongs Template:", templateName)
 		fmt.Println("Due Date Calculated:", dueDate)
 		fmt.Println("Review Title:", reviewName)
@@ -69,7 +69,7 @@ func CreateReview(reviewName string, templateName string, reviewLength int64, us
 	return false, ""
 }
 func addReviewersPost(token string, baseUrl string, permaId string, userName string) {
-	restUrl := baseUrl + "/viewer/rest-service/reviews-v1/" + permaId + "/reviewers?FEAUTH=" + token
+	restUrl := baseUrl + "/rest-service/reviews-v1/" + permaId + "/reviewers?FEAUTH=" + token
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", restUrl, bytes.NewBuffer([]byte(userName)))
 	client.Do(req)
@@ -154,7 +154,7 @@ func calculateDueDate(days int64) string {
 }
 
 func Login(userName string, password string, baseUrl string) string {
-	restUrl := baseUrl + "/viewer/rest-service/auth-v1/login"
+	restUrl := baseUrl + "/rest-service/auth-v1/login"
 
 	resp, err := http.PostForm(restUrl, url.Values{"userName": {strings.ToLower(userName)}, "password": {password}})
 	if err != nil {

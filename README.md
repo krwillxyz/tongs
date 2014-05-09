@@ -54,7 +54,7 @@ Here is what your .tongs_config file should look like. You can add as many confi
 as you need, as long as the default and settings. Not all fields are required for all sections
 but you can currently use project-key, duration, reviewers and title as you see fit. There is no restriction on spacing 
 around the commas and equal signs. Also titles should be written without quotes of any kind. 
-Note: you must have at least a default project-key to create reviews.
+Note: you must have at least a default project-key to create reviews. If this project key is invalid for the Crucible instance you are using, the review will not be created. Also, for the baseurl, add any nessesary url paths to the base url such as /viewer if needed, just omit the trailing slash.
 
     [default]
     project-key=PROJECT-KEY
