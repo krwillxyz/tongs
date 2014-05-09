@@ -77,7 +77,7 @@ func addReviewersPost(token string, baseUrl string, permaId string, userName str
 
 func createReviewPost(json []byte, token string, baseUrl string) (string, bool) {
 
-	restUrl := baseUrl + "/viewer/rest-service/reviews-v1?FEAUTH=" + token
+	restUrl := baseUrl + "/rest-service/reviews-v1?FEAUTH=" + token
 
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", restUrl, bytes.NewBuffer(json))
