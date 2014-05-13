@@ -1,6 +1,6 @@
 tongs
 ================================
-Command line tool for interacting with Crucible. Solves the problem of 
+Command line tool for interacting with [Atlassian Crucible](https://www.atlassian.com/software/crucible/overview). Solves the problem of 
 remembering who you need to put on that code review and saves you time 
 by adding everyone automatically.
 Usage
@@ -28,9 +28,9 @@ Other Usage Examples:
 
 Setup
 --------------------------------
-Tongs is written in Golang. (http://golang.org/) Golang code can be compiled on 
+Tongs is written in [Golang](http://golang.org/). Golang code can be compiled on 
 Windows, Mac, Linux etc.. just as long as Go is installed.
-(Download Go here: https://code.google.com/p/go/wiki/Downloads or 'brew install go' on a mac) 
+([Download Go here](https://code.google.com/p/go/wiki/Downloads) or 'brew install go' on a mac) 
 With go installed build tongs by calling:
     
     go build tongs.go
