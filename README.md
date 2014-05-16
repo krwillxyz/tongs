@@ -100,14 +100,12 @@ https://docs.atlassian.com/fisheye-crucible/latest/wadl/crucible.html#rest-servi
 Future Development Ideas
 --------------------------------------------
 
-* Central, Github hosted, config files for teams. Teams could create one central list to manage who is on various code reviews for different languages.
-* Github and SVN intergration
-* Ability to Add reviewers to existing reviews
-* Ability to see list of current reviews
-* Refactor code
-* Mask Passwords
-* etc, etc, etc.....
-
+ - [ ] Central, Github hosted, config files for teams. Teams could create one central list to manage who is on various code reviews for different languages.
+ - [ ] Github and SVN intergration
+ - [ ] Ability to Add reviewers to existing reviews
+ - [ ] Ability to see list of current reviews
+ - [ ] Refactor code
+ - [ ] MASK PASSWORDS
 
 ## Contributing
 
