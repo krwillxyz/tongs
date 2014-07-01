@@ -40,6 +40,24 @@ type CodeReview struct {
 	ReviewData ReviewData `json:"reviewData"`
 }
 
+
+
+func UpdateReview(templateName string, userName string, baseUrl string, token string, reviewers_raw string, projectId string) {
+	fmt.Println("Attempting to Update Review...")
+	title := confirmReviewOwnership(baseUrl, projectId, userName)
+	fmt.Println(title + " (" + projectId + ")")
+	reviewers := strings.Split(reviewers_raw,",")
+	for _, reviewer := range reviewers {
+		clean_reviewer := strings.TrimSpace(strings.ToLower(reviewer))
+		if(len(clean_reviewer)>0){
+	    	fmt.Println("Adding Reviewer:",clean_reviewer)
+	    	addReviewersPost(token, baseUrl, projectId, clean_reviewer)
+		}
+	}
+}
+
+
+
 func CreateReview(reviewName string, templateName string, reviewLength int64, userName string, baseUrl string, token string, reviewers_raw string, projectKey string) (bool, string) {
 	
 	
@@ -75,6 +93,51 @@ func addReviewersPost(token string, baseUrl string, permaId string, userName str
 	client.Do(req)
 }
 
+
+func confirmReviewOwnership(baseUrl string, permaId string, userName string)(string) {
+	restUrl := baseUrl + "/rest-service/reviews-v1/" + permaId
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", restUrl, nil)
+	req.Header.Add("Accept", "application/xml")
+	resp, err := client.Do(req)
+	if (err != nil || resp.StatusCode != 200) {
+		exitError("Code Review With Id "+permaId+" Not Found...", nil)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		exitError("Unable to read Crucible response", err)
+	}
+	title := extractTitle(string(body))
+	if userName == extractAuthor(string(body)) {
+		return title
+	}
+	fmt.Println(title + " (" + permaId + ")")
+	exitError("You are not the author of this code review...", nil)	
+	return ""
+}
+
+func  extractAuthor(body string) (author string) {
+	if hasAuthor, _ := regexp.MatchString("author", string(body)); hasAuthor {
+		re := regexp.MustCompile("<author>.*<userName>(.*)</userName>")
+		author := re.FindStringSubmatch(string(body))
+		if author != nil && len(author) > 1 {
+			return author[1]
+		} 
+	}
+	return ""
+}
+
+func  extractTitle(body string) (name string) {
+	if hasName, _ := regexp.MatchString("name", string(body)); hasName {
+		re := regexp.MustCompile("<name>(.*)</name>")
+		name := re.FindStringSubmatch(string(body))
+		if name != nil && len(name) > 1 {
+			return name[1]
+		} 
+	}
+	return ""
+}
+
 func createReviewPost(json []byte, token string, baseUrl string) (string, bool) {
 
 	restUrl := baseUrl + "/rest-service/reviews-v1?FEAUTH=" + token
@@ -91,7 +154,7 @@ func createReviewPost(json []byte, token string, baseUrl string) (string, bool) 
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		exitError("Unable to read response", err)
+		exitError("Unable to read Crucible response", err)
 	}
 	if hasStatus, _ := regexp.MatchString("status-code", string(body)); hasStatus {
 		re := regexp.MustCompile("\"status-code\":(.*)}")
