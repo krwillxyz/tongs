@@ -4,13 +4,17 @@ import (
 	"fmt"
 )
 
-func ParseCommandLineInputs(osArgs []string) (isHelp bool, isCreateReview bool, reviewTitle string, reviewTemplate string, isCreateConfig bool) {
+func ParseCommandLineInputs(osArgs []string) (isHelp bool, isCreateReview bool, isUpdateReview bool, isGetToken bool, reviewTitle string, reviewTemplate string, isCreateConfig bool, projectId string) {
 
 	isHelp = false
 	isCreateReview = false
 	isCreateConfig = false
+	isGetToken = false
+	isUpdateReview = false
 	reviewTitle = ""
 	reviewTemplate = "default"
+	projectId = ""
+
 	count := len(osArgs)
 	 if count > 1 {
 	 	for index, arg := range osArgs {
@@ -18,6 +22,14 @@ func ParseCommandLineInputs(osArgs []string) (isHelp bool, isCreateReview bool, 
 		    		isHelp = true
 		    	}else if(index == 1 && arg == "--create-config"){
 		    		isCreateConfig = true
+		    	}else if(index == 1 && arg == "--get-token"){
+		    		isGetToken = true
+		    	}else if(index == 1 && arg == "update"){
+		    		isUpdateReview = true
+		    		if(count-2>index){
+		    			reviewTemplate=osArgs[index+1]
+		    			projectId=osArgs[index+2]
+		    		}
 		    	}else if(index == 1 && arg == "create"){
 		    		isCreateReview = true
 		    		if(count-1>index && osArgs[index+1]!="--title"){
@@ -31,7 +43,7 @@ func ParseCommandLineInputs(osArgs []string) (isHelp bool, isCreateReview bool, 
 	} else {
 		fmt.Println("Please provide a command. (type 'tongs help' for assistance)")
 	}
-	return isHelp, isCreateReview, reviewTitle, reviewTemplate, isCreateConfig
+	return isHelp, isCreateReview, isUpdateReview, isGetToken, reviewTitle, reviewTemplate, isCreateConfig, projectId
 }
 func RequestUsername() string {
 	return requestStandardInput("Crucible Username")
@@ -43,10 +55,13 @@ func RequestPassword() string {
 	return requestStandardInput("Crucible Password")
 }
 func Help() {
-	fmt.Println("TODO: Write Help Text.")
-	fmt.Println("For now check out the Github repo.")
+	fmt.Println("Tongs v1.1")
+	fmt.Println("Usage:")
 	fmt.Println("tongs --create-config")
-	fmt.Println("tongs create")
+	fmt.Println("tongs --get-token")
+	fmt.Println("tongs create <template>")
+	fmt.Println("tongs create <template> --title \"My Custom Title\"")
+	fmt.Println("tongs update <template> <codeReviewId>")
 
 	
 }
