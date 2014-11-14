@@ -35,7 +35,9 @@ func LoadBaseUrl() (baseUrl string) {
 }
 
 func LoadUsername() (bool, string) {
-	if ok, _, username, _, _ := getConfigAtSection("crucible-username", "settings", "string"); ok && username != "" {
+	if ok, _, username, _, _ := getConfigAtSection("crucible-username",
+		"settings", "string"); ok && username != "" {
+
 		return true, username
 	} else {
 		return false, ""
@@ -47,7 +49,9 @@ func SaveUsername(username string) bool {
 }
 
 func LoadToken() (bool, string) {
-	if ok, _, token, _, _ := getConfigAtSection("crucible-token", "settings", "string"); ok && token != "" {
+	if ok, _, token, _, _ := getConfigAtSection("crucible-token",
+		"settings", "string"); ok && token != "" {
+
 		return true, token
 	} else {
 		return false, ""
@@ -72,11 +76,12 @@ func writeConfigAtSection(section string, option string, value string) bool {
 	return true
 }
 
-func getConfigAtSection(option string, section string, datatype string) (bool, string, string, int64, bool) {
+func getConfigAtSection(option string, section string,
+	datatype string) (bool, string, string, int64, bool) {
 
 	c, err := goconfig.ReadConfigFile(".tongs_config")
 	if err != nil {
-		exitError("No tongs config file was able to be loaded...",err)
+		exitError("No tongs config file was able to be loaded...", err)
 	}
 
 	if c.HasOption(section, option) {

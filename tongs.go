@@ -4,32 +4,43 @@ import (
 	"./config/"
 	"./crucible/"
 	"./interaction/"
+	"fmt"
 	"os"
 	"strings"
-	"fmt"
 )
+
+var msg map[string]string {
+	"setup": "Make sure your username, base Crucible url, and Crucible token are setup in your .tongs_config file.",
+}
 
 func main() {
 
-	isHelp, isCreateReview, isUpdateReview, isGetToken, reviewTitle, reviewTemplate, isCreateConfig, projectId := interaction.ParseCommandLineInputs(os.Args)
+	isHelp,
+		isCreateReview,
+		isUpdateReview,
+		isGetToken,
+		reviewTitle,
+		reviewTemplate,
+		isCreateConfig,
+		projectId := interaction.ParseCommandLineInputs(os.Args)
 
 	if isHelp {
 		interaction.Help()
 	} else if isCreateConfig {
-		ok := config.CreateConfigFile() 
+		ok := config.CreateConfigFile()
 		interaction.ConfigFileCreated(ok)
 	} else if isGetToken {
 		baseUrl := config.LoadBaseUrl()
-		fmt.Println("Crucible URL: ", baseUrl)
+		fmt.Println("Crucible Url: ", baseUrl)
 		username := interaction.RequestUsername()
 		username = strings.ToLower(username)
 		password := interaction.RequestPassword()
 		token := crucible.Login(username, password, baseUrl)
-		fmt.Println("Recieved Token: ",token)
+		fmt.Println("Recieved Token: ", token)
 		config.SaveUsername(username)
 		config.SaveToken(token)
-		fmt.Println("Token Saved Successfully!!!")
-		fmt.Println("(you can now clear your terminal)")
+		fmt.Println("Token Saved Successfully!")
+		fmt.Println("(you should now clear your terminal)")
 	} else if isCreateReview {
 		if reviewTitle == "" {
 			reviewTitle = config.LoadReviewTitle(reviewTemplate)
@@ -43,13 +54,17 @@ func main() {
 		hasToken, token := config.LoadToken()
 
 		if hasUsername && hasToken {
-		
-			if ok, _ := crucible.CreateReview(reviewTitle, reviewTemplate, reviewLength, username, baseUrl, token, reviewers, projectKey); ok == false {
-				fmt.Println("Unknown Error Occured... :(")
+
+			if ok, _ := crucible.CreateReview(reviewTitle, reviewTemplate,
+				reviewLength, username, baseUrl, token, reviewers,
+				projectKey); ok == false {
+
+				fmt.Println("Unable to create new code review.")
+				fmt.Println("Has your password changed?")
 			}
-			
+
 		} else {
-			fmt.Println("Make sure your Username, Base URL & Token are setup in .tongs_config...")
+			fmt.Println(msg["setup"])
 			interaction.Help()
 		}
 	} else if isUpdateReview {
@@ -58,11 +73,13 @@ func main() {
 		hasUsername, username := config.LoadUsername()
 		hasToken, token := config.LoadToken()
 		if hasUsername && hasToken {
-			crucible.UpdateReview(reviewTemplate, username, baseUrl, token, reviewers, projectId)
+			crucible.UpdateReview(reviewTemplate, username,
+				baseUrl, token, reviewers, projectId)
+
 		} else {
-			fmt.Println("Make sure your Username, Base URL & Token are setup in .tongs_config...")
+			fmt.Println(msg["setup"])
 			interaction.Help()
 		}
-	} 
+	}
 	return
 }

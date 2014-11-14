@@ -16,8 +16,8 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"time"
 	"strings"
+	"time"
 )
 
 //struct definitions of the JSON structure to use the Crucible Rest API
@@ -40,108 +40,151 @@ type CodeReview struct {
 	ReviewData ReviewData `json:"reviewData"`
 }
 
+var msg = map[string]string{
+	"update-review":           "Attempting to Update Review...\n",
+	"review-title":            "%s (%s)\n",
+	"review-created-id":       "Review Created!\nId: %s\n",
+	"review-created-url":      "Url: %s/cru/%s\n",
+	"review-created-template": "Template: %s\n",
+	"review-created-due":      "Due Date: %s\n",
+	"review-created-title":    "Title: %s\n",
+	"review-created-key":      "Project Key: %s\n",
+	"review-created-reviewer": "Adding Reviewer: %s\n",
+	"review-not-found":        "Code review with id %s not found...\n",
+	"not-author":              "You are not the author of this code review...\n",
+	"bad-response":            "Unable to read Crucible response\n",
+	"bad-http-response":       "Error. Unable to read Crucible HTTP response\n",
+	"no-crucible":             "Unable to reach Crucible\n",
+	"crucible-maintenance":    "Crucible is doing maintenance. Please try again in a bit.\n",
+	"unable-to-authenticate":  "Unable to authenticate with Crucible\n",
+	"unable-to-create":        "Unable to create code review\n",
+}
 
+var regex = map[string]string{
+	"extract-author":       "<author>.*<userName>(.*)</userName>",
+	"extract-title":        "<name>(.*)</name>",
+	"extract-token":        "<token>(.*)</token>",
+	"crucible-maintenance": "Crucible Maintenance",
+	"status-code":          "\"status-code\":(.*)}",
+	"perma-id":             "\"permaId\":{\"id\":\"(.*)\"},\"permaIdHistory\"",
+}
 
-func UpdateReview(templateName string, userName string, baseUrl string, token string, reviewers_raw string, projectId string) {
-	fmt.Println("Attempting to Update Review...")
+var urls = map[string]string{
+	"crucible-login":         "%s/rest-service/auth-v1/login",
+	"crucible-add-reviewer":  "%s/rest-service/reviews-v1/%s/reviewers?FEAUTH=%s",
+	"crucible-review":        "%s/rest-service/reviews-v1/%s",
+	"crucible-create-review": "%s/rest-service/reviews-v1?FEAUTH=%s",
+}
+
+func UpdateReview(templateName string,
+	userName string, baseUrl string, token string,
+	reviewers_raw string, projectId string) {
+
+	fmt.Printf(msg["update-review"])
 	title := confirmReviewOwnership(baseUrl, projectId, userName)
-	fmt.Println(title + " (" + projectId + ")")
-	reviewers := strings.Split(reviewers_raw,",")
+	fmt.Printf(msg["update-review-title"], title, projectId)
+	reviewers := strings.Split(reviewers_raw, ",")
 	for _, reviewer := range reviewers {
 		clean_reviewer := strings.TrimSpace(strings.ToLower(reviewer))
-		if(len(clean_reviewer)>0){
-	    	fmt.Println("Adding Reviewer:",clean_reviewer)
-	    	addReviewersPost(token, baseUrl, projectId, clean_reviewer)
+		if len(clean_reviewer) > 0 {
+			fmt.Printf(msg["adding-reviewer"], clean_reviewer)
+			addReviewersPost(token, baseUrl, projectId, clean_reviewer)
 		}
 	}
 }
 
+func CreateReview(reviewName string, templateName string,
+	reviewLength int64, userName string, baseUrl string,
+	token string, reviewers_raw string,
+	projectKey string) (bool, string) {
 
-
-func CreateReview(reviewName string, templateName string, reviewLength int64, userName string, baseUrl string, token string, reviewers_raw string, projectKey string) (bool, string) {
-	
-	
-	
 	dueDate := calculateDueDate(reviewLength)
-	
-	json := createReviewByteArray(reviewName, "REVIEW", strings.ToLower(userName), strings.ToLower(userName), dueDate, userName, projectKey, true)
+
+	json := createReviewByteArray(reviewName, "REVIEW",
+		strings.ToLower(userName), strings.ToLower(userName),
+		dueDate, userName, projectKey, true)
 
 	if id, ok := createReviewPost(json, token, baseUrl); ok {
-		
-		fmt.Println("Review Created:",id)
-		fmt.Println("("+baseUrl+"/cru/"+id+")")
-		fmt.Println("Using Tongs Template:", templateName)
-		fmt.Println("Due Date Calculated:", dueDate)
-		fmt.Println("Review Title:", reviewName)
-		fmt.Println("Project Key:", projectKey)
-		reviewers := strings.Split(reviewers_raw,",")
+
+		fmt.Printf(msg["review-created-id"], id)
+		fmt.Printf(msg["review-created-url"], baseUrl, id)
+		fmt.Printf(msg["review-created-template"], templateName)
+		fmt.Printf(msg["review-created-due"], dueDate)
+		fmt.Printf(msg["review-created-title"], reviewName)
+		fmt.Printf(msg["review-created-key"], projectKey)
+		reviewers := strings.Split(reviewers_raw, ",")
 		for _, reviewer := range reviewers {
 			clean_reviewer := strings.TrimSpace(strings.ToLower(reviewer))
-			if(len(clean_reviewer)>0){
-		    	fmt.Println("Adding Reviewer:",clean_reviewer)
-		    	addReviewersPost(token, baseUrl, id, clean_reviewer)
+			if len(clean_reviewer) > 0 {
+				fmt.Printf(msg["review-created-reviewer"], clean_reviewer)
+				addReviewersPost(token, baseUrl, id, clean_reviewer)
 			}
 		}
 		return true, id
 	}
 	return false, ""
 }
-func addReviewersPost(token string, baseUrl string, permaId string, userName string) {
-	restUrl := baseUrl + "/rest-service/reviews-v1/" + permaId + "/reviewers?FEAUTH=" + token
+func addReviewersPost(token string, baseUrl string,
+	permaId string, userName string) {
+
+	restUrl := fmt.Sprintf(urls["crucible-add-reviewer"], baseUrl, permaId, token)
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", restUrl, bytes.NewBuffer([]byte(userName)))
 	client.Do(req)
 }
 
+func confirmReviewOwnership(baseUrl string,
+	permaId string, userName string) string {
 
-func confirmReviewOwnership(baseUrl string, permaId string, userName string)(string) {
-	restUrl := baseUrl + "/rest-service/reviews-v1/" + permaId
+	restUrl := fmt.Sprintf(urls["crucible-create-review"], baseUrl, permaId)
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", restUrl, nil)
 	req.Header.Add("Accept", "application/xml")
 	resp, err := client.Do(req)
-	if (err != nil || resp.StatusCode != 200) {
-		exitError("Code Review With Id "+permaId+" Not Found...", nil)
+
+	if err != nil || resp.StatusCode != 200 {
+		exitError(fmt.Sprintf(msg["review-not-found"], permaId), nil)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
+
 	if err != nil {
-		exitError("Unable to read Crucible response", err)
+		exitError(msg["bad-response"], err)
 	}
 	title := extractTitle(string(body))
+
 	if userName == extractAuthor(string(body)) {
 		return title
 	}
-	fmt.Println(title + " (" + permaId + ")")
-	exitError("You are not the author of this code review...", nil)	
+	fmt.Printf(msg["review-title"], title, permaId)
+	exitError(msg["not-author"], nil)
 	return ""
 }
 
-func  extractAuthor(body string) (author string) {
+func extractAuthor(body string) (author string) {
 	if hasAuthor, _ := regexp.MatchString("author", string(body)); hasAuthor {
-		re := regexp.MustCompile("<author>.*<userName>(.*)</userName>")
+		re := regexp.MustCompile(regex["extract-author"])
 		author := re.FindStringSubmatch(string(body))
 		if author != nil && len(author) > 1 {
 			return author[1]
-		} 
+		}
 	}
 	return ""
 }
 
-func  extractTitle(body string) (name string) {
+func extractTitle(body string) (name string) {
 	if hasName, _ := regexp.MatchString("name", string(body)); hasName {
-		re := regexp.MustCompile("<name>(.*)</name>")
+		re := regexp.MustCompile(regex["extract-title"])
 		name := re.FindStringSubmatch(string(body))
 		if name != nil && len(name) > 1 {
 			return name[1]
-		} 
+		}
 	}
 	return ""
 }
 
 func createReviewPost(json []byte, token string, baseUrl string) (string, bool) {
 
-	restUrl := baseUrl + "/rest-service/reviews-v1?FEAUTH=" + token
-
+	restUrl := fmt.Sprintf(urls["crucible-create-review"], baseUrl, token)
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", restUrl, bytes.NewBuffer(json))
 	req.Header.Add("Content-Type", "application/json")
@@ -149,15 +192,15 @@ func createReviewPost(json []byte, token string, baseUrl string) (string, bool) 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		exitError("Unable to create code review", err)
+		exitError(msg["unable-to-create"], err)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		exitError("Unable to read Crucible response", err)
+		exitError(msg["bad-response"], err)
 	}
 	if hasStatus, _ := regexp.MatchString("status-code", string(body)); hasStatus {
-		re := regexp.MustCompile("\"status-code\":(.*)}")
+		re := regexp.MustCompile(regex["status-code"])
 		status := re.FindStringSubmatch(string(body))
 		if status != nil && len(status) > 1 {
 			return status[1], false
@@ -165,7 +208,7 @@ func createReviewPost(json []byte, token string, baseUrl string) (string, bool) 
 	}
 
 	if hasPermaId, _ := regexp.MatchString("permaId", string(body)); hasPermaId {
-		re := regexp.MustCompile("\"permaId\":{\"id\":\"(.*)\"},\"permaIdHistory\"")
+		re := regexp.MustCompile(regex["perma-id"])
 		permaId := re.FindStringSubmatch(string(body))
 		if permaId != nil && len(permaId) > 1 {
 			return permaId[1], true
@@ -175,8 +218,10 @@ func createReviewPost(json []byte, token string, baseUrl string) (string, bool) 
 	return "", false
 }
 
-func createReviewByteArray(reviewName string, reviewType string, authorUsername string, creatorUsername string,
-	dueDate string, moderatorUsername string, projectKey string, allowReviewerToJoin bool) []byte {
+func createReviewByteArray(reviewName string, reviewType string,
+	authorUsername string, creatorUsername string,
+	dueDate string, moderatorUsername string, projectKey string,
+	allowReviewerToJoin bool) []byte {
 
 	author := Person{
 		UserName: authorUsername,
@@ -217,36 +262,39 @@ func calculateDueDate(days int64) string {
 }
 
 func Login(userName string, password string, baseUrl string) string {
-	restUrl := baseUrl + "/rest-service/auth-v1/login"
+	restUrl := fmt.Sprintf(urls["crucible-login"], baseUrl)
 
-	resp, err := http.PostForm(restUrl, url.Values{"userName": {strings.ToLower(userName)}, "password": {password}})
+	resp, err := http.PostForm(restUrl,
+		url.Values{"userName": {strings.ToLower(userName)},
+			"password": {password}})
+
 	if err != nil {
-		exitError("Unable to reach Crucible", err)
+		exitError(msg["no-crucible"], err)
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		exitError("Error unable to read Crucible http response", err)
+		exitError(msg["bad-http-response"], err)
 	}
 	rawToken := string(body[1:])
 
-	isDown, _ := regexp.MatchString("Crucible Maintenance", rawToken)
+	isDown, _ := regexp.MatchString(regex["crucible-maintenance"], rawToken)
 	if isDown {
-		exitError("Crucible is doing maintenance. Please try again in a bit.", nil)
+		exitError(msg["crucible-maintenance"], nil)
 	}
 
-	hasToken, _ := regexp.MatchString("<token>(.*)</token>", rawToken)
+	hasToken, _ := regexp.MatchString(regex["extract-token"], rawToken)
 	if hasToken == false {
-		exitError("Unable to authenticate with Crucible", nil)
+		exitError(msg["unable-to-authenticate"], nil)
 	}
 
-	re := regexp.MustCompile("<token>(.*)</token>")
+	re := regexp.MustCompile(regex["extract-token"])
 	token := re.FindStringSubmatch(rawToken)
 	if len(token) == 2 {
 		return token[1]
 	}
-	exitError("Unable to authenticate with Crucible", nil)
+	exitError(msg["unable-to-authenticate"], nil)
 	return ""
 }
 
