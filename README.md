@@ -1,17 +1,18 @@
 tongs
 ================================
-Usage: tongs [OPTION] [TEMPLATE] [REVIEW-ID]
-
 Utility for creating code reviews quickly
 in [Crucible](https://www.atlassian.com/software/crucible/overview) based on predefined templates.
 
+Usage: 
+    tongs [OPTION] [TEMPLATE] [REVIEW-ID]
+
 Options:
-setup
-token
-templates
-templates [TEMPLATE]
-create [TEMPLATE]
-update [TEMPLATE] [REVIEW-ID]
+    setup
+    token
+    templates
+    templates [TEMPLATE]
+    create [TEMPLATE]
+    update [TEMPLATE] [REVIEW-ID]
 
 Examples
 --------------------------------
