@@ -4,6 +4,7 @@ import (
 	"./goconfig/"
 	"fmt"
 	"os"
+	"strings"
 )
 
 //Loads string of userids from the config file based on the key provided
@@ -35,17 +36,13 @@ func LoadBaseUrl() (baseUrl string) {
 }
 
 func LoadUsername() (bool, string) {
-	if ok, _, username, _, _ := getConfigAtSection("crucible-username",
-		"settings", "string"); ok && username != "" {
 
-		return true, username
-	} else {
-		return false, ""
+	if ok, token := LoadToken(); ok {
+		if strings.Contains(token, ":") {
+			return true, strings.Split(token, ":")[0]
+		}
 	}
-}
-
-func SaveUsername(username string) bool {
-	return writeConfigAtSection("settings", "crucible-username", username)
+	return false, ""
 }
 
 func LoadToken() (bool, string) {
@@ -58,8 +55,34 @@ func LoadToken() (bool, string) {
 	}
 }
 
+func LoadTemplates() {
+	c, _ := readTongsConfig(true)
+	fmt.Println("Templates:")
+	for _, element := range c.GetSections() {
+		if element != "default" && element != "settings" {
+			fmt.Println(element)
+		}
+	}
+}
+
+func TemplateExists(template string) bool {
+	c, _ := readTongsConfig(true)
+	for _, element := range c.GetSections() {
+		if element != "default" && element != "settings" {
+			if element == template {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func SaveToken(token string) bool {
 	return writeConfigAtSection("settings", "crucible-token", token)
+}
+
+func SaveBaseUrl(baseUrl string) bool {
+	return writeConfigAtSection("settings", "crucible-baseurl", baseUrl)
 }
 
 func ClearToken() bool {
@@ -67,22 +90,16 @@ func ClearToken() bool {
 }
 
 func writeConfigAtSection(section string, option string, value string) bool {
-	c, err := goconfig.ReadConfigFile(".tongs_config")
-	if err != nil {
-		exitError("Error reading tongs config file", err)
-	}
+	c, _ := readTongsConfig(true)
 	c.AddOption(section, option, value)
-	c.WriteConfigFile(".tongs_config", 0644, "")
+	c.WriteConfigFile("tongs.cfg", 0644, "")
 	return true
 }
 
 func getConfigAtSection(option string, section string,
 	datatype string) (bool, string, string, int64, bool) {
 
-	c, err := goconfig.ReadConfigFile(".tongs_config")
-	if err != nil {
-		exitError("No tongs config file was able to be loaded...", err)
-	}
+	c, _ := readTongsConfig(true)
 
 	if c.HasOption(section, option) {
 
@@ -104,8 +121,16 @@ func getConfigAtSection(option string, section string,
 	return false, "", "", 0, false
 }
 
+func readTongsConfig(exit bool) (*goconfig.ConfigFile, error) {
+	c, err := goconfig.ReadConfigFile("tongs.cfg")
+	if err != nil && exit == true {
+		exitError("Could not read tongs.cfg", err)
+	}
+	return c, err
+}
+
 func CreateConfigFile() bool {
-	_, err := goconfig.ReadConfigFile(".tongs_config")
+	_, err := readTongsConfig(false)
 	if err != nil {
 		c := goconfig.NewConfigFile()
 		c.AddSection("default")
@@ -116,10 +141,9 @@ func CreateConfigFile() bool {
 		c.AddSection("my-team")
 		c.AddOption("my-team", "title", "My Team Code Review Template Title")
 		c.AddSection("settings")
-		c.AddOption("settings", "crucible-username", "")
 		c.AddOption("settings", "crucible-baseurl", "http://crucible06.mycompany.com")
 		c.AddOption("settings", "crucible-token", "")
-		c.WriteConfigFile(".tongs_config", 0644, "")
+		c.WriteConfigFile("tongs.cfg", 0644, "")
 		return true
 	}
 	return false

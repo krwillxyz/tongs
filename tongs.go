@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-var msg map[string]string {
-	"setup": "Make sure your username, base Crucible url, and Crucible token are setup in your .tongs_config file.",
+var msg = map[string]string{
+	"setup": "Make sure your Crucible Base Url, and Crucible Token are setup in your tongs.cfg file.",
 }
 
 func main() {
@@ -19,33 +19,70 @@ func main() {
 		isCreateReview,
 		isUpdateReview,
 		isGetToken,
-		reviewTitle,
 		reviewTemplate,
 		isCreateConfig,
-		projectId := interaction.ParseCommandLineInputs(os.Args)
+		projectId,
+		isListTemplates := interaction.ParseCommandLineInputs(os.Args)
 
 	if isHelp {
 		interaction.Help()
-	} else if isCreateConfig {
+	}
+
+	if isListTemplates {
+		if reviewTemplate != "default" {
+			if config.TemplateExists(reviewTemplate) {
+				fmt.Println("Title:    ", config.LoadReviewTitle(reviewTemplate))
+				fmt.Println("Key:      ", config.LoadProjectKey(reviewTemplate))
+				fmt.Println("Duration: ", config.LoadDuration(reviewTemplate))
+				fmt.Println("User IDs: ", config.LoadUserIds(reviewTemplate))
+			} else {
+				fmt.Println("Template '" + reviewTemplate + "' not found.")
+				config.LoadTemplates()
+			}
+		} else {
+			config.LoadTemplates()
+		}
+	}
+
+	if isCreateConfig {
 		ok := config.CreateConfigFile()
 		interaction.ConfigFileCreated(ok)
-	} else if isGetToken {
+
+		if ok == false {
+			baseUrl := config.LoadBaseUrl()
+			fmt.Println("Crucible URL: ", baseUrl)
+		} else {
+			url := interaction.RequestUrl()
+			config.SaveBaseUrl(url)
+		}
+		isGetToken = true
+	}
+
+	if isGetToken {
 		baseUrl := config.LoadBaseUrl()
-		fmt.Println("Crucible Url: ", baseUrl)
+		if isCreateConfig == false {
+			fmt.Println("Crucible Url: ", baseUrl)
+		}
 		username := interaction.RequestUsername()
 		username = strings.ToLower(username)
 		password := interaction.RequestPassword()
+		for i := 0; i < 1000; i++ {
+        	fmt.Println("")
+    	}
 		token := crucible.Login(username, password, baseUrl)
-		fmt.Println("Recieved Token: ", token)
-		config.SaveUsername(username)
 		config.SaveToken(token)
-		fmt.Println("Token Saved Successfully!")
+		fmt.Println("Token updated successfully!")
 		fmt.Println("(you should now clear your terminal)")
-	} else if isCreateReview {
-		if reviewTitle == "" {
-			reviewTitle = config.LoadReviewTitle(reviewTemplate)
-		}
+	}
 
+	if isCreateReview {
+
+		if !config.TemplateExists(reviewTemplate){
+			fmt.Println("Template '" + reviewTemplate + "' not found.")
+			config.LoadTemplates()
+			return
+		}
+		reviewTitle := config.LoadReviewTitle(reviewTemplate)
 		baseUrl := config.LoadBaseUrl()
 		projectKey := config.LoadProjectKey(reviewTemplate)
 		reviewLength := config.LoadDuration(reviewTemplate)
@@ -67,7 +104,16 @@ func main() {
 			fmt.Println(msg["setup"])
 			interaction.Help()
 		}
-	} else if isUpdateReview {
+	}
+
+	if isUpdateReview {
+
+		if !config.TemplateExists(reviewTemplate){
+			fmt.Println("Template '" + reviewTemplate + "' not found.")
+			config.LoadTemplates()
+			return
+		}
+
 		baseUrl := config.LoadBaseUrl()
 		reviewers := config.LoadUserIds(reviewTemplate)
 		hasUsername, username := config.LoadUsername()

@@ -2,19 +2,20 @@ package interaction
 
 import (
 	"fmt"
+	"strings"
 )
 
 func ParseCommandLineInputs(osArgs []string) (isHelp bool,
 	isCreateReview bool, isUpdateReview bool, isGetToken bool,
-	reviewTitle string, reviewTemplate string, 
-	isCreateConfig bool, projectId string) {
+	reviewTemplate string, isCreateConfig bool, projectId string,
+	isListTemplates bool) {
 
 	isHelp = false
 	isCreateReview = false
 	isCreateConfig = false
 	isGetToken = false
 	isUpdateReview = false
-	reviewTitle = ""
+	isListTemplates = false
 	reviewTemplate = "default"
 	projectId = ""
 
@@ -24,10 +25,15 @@ func ParseCommandLineInputs(osArgs []string) (isHelp bool,
 			if index == 1 {
 				if arg == "help" || arg == "h" {
 					isHelp = true
-				} else if arg == "--create-config" {
+				} else if arg == "setup" {
 					isCreateConfig = true
-				} else if arg == "--get-token" {
+				} else if arg == "token" {
 					isGetToken = true
+				} else if arg == "templates" {
+					isListTemplates = true
+					if count-1 > index {
+						reviewTemplate = osArgs[index+1]
+					}
 				} else if arg == "update" {
 					isUpdateReview = true
 					if count-2 > index {
@@ -37,14 +43,8 @@ func ParseCommandLineInputs(osArgs []string) (isHelp bool,
 				} else if arg == "create" {
 					isCreateReview = true
 					if count-1 > index {
-						if osArgs[index+1] != "--title" {
-							reviewTemplate = osArgs[index+1]
-						}
+						reviewTemplate = osArgs[index+1]
 					}
-				}
-			} else if isCreateReview && arg == "--title" {
-				if count-1 > index {
-					reviewTitle = osArgs[index+1]
 				}
 			}
 		}
@@ -53,38 +53,45 @@ func ParseCommandLineInputs(osArgs []string) (isHelp bool,
 		isHelp = true
 	}
 	return isHelp, isCreateReview, isUpdateReview, isGetToken,
-		reviewTitle, reviewTemplate, isCreateConfig, projectId
+		reviewTemplate, isCreateConfig, projectId, isListTemplates
 }
+
+func RequestUrl() string {
+	return strings.Trim(requestStandardInput("Crucible Url"), " \\/")
+}
+
 func RequestUsername() string {
-	return requestStandardInput("Crucible Username")
+	return strings.Trim(requestStandardInput("Crucible Username"), " ")
 }
 
 func RequestPassword() string {
-	fmt.Println("PASSWORD WILL NOT BE MASKED!!!")
-	fmt.Println("This will only occur whenever your crucible token is forcefully expired...")
+	fmt.Println("*************************************")
+	fmt.Println("Password input is not masked!")
+	fmt.Println("Clear this terminal after entering")
+	fmt.Println("your password for safety.")
+	fmt.Println("*************************************")
 	return requestStandardInput("Crucible Password")
 }
 func Help() {
-	fmt.Println("Tongs v1.1")
-	fmt.Println("Usage:")
-	fmt.Println("tongs --create-config")
-	fmt.Println("tongs --get-token")
-	fmt.Println("tongs create <template>")
-	fmt.Println("tongs create <template> --title \"My Custom Title\"")
-	fmt.Println("tongs update <template> <codeReviewId>")
+	fmt.Println("Usage: tongs [OPTION] [TEMPLATE] [REVIEW-ID]")
+	fmt.Println("")
+	fmt.Println("Utility for creating code reviews quickly")
+	fmt.Println("in Crucible based on predefined templates.")
+	fmt.Println("")
+	fmt.Println("Options: ")
+	fmt.Println("setup                           ")
+	fmt.Println("token                           ")
+	fmt.Println("templates                       ")
+	fmt.Println("templates [TEMPLATE]            ")
+	fmt.Println("create [TEMPLATE]               ")
+	fmt.Println("update [TEMPLATE] [REVIEW-ID]   ")
 
 }
 func ConfigFileCreated(ok bool) {
 	if ok == true {
-		fmt.Println("Success!")
-		fmt.Println(".tongs_config was created successfully your home directory")
-		fmt.Println("edit this file with your favorite text editor to get tongs")
-		fmt.Println("up and running. Check out the Github documentation for more info.")
+		fmt.Println("tongs.cfg created!")
 	} else {
-		fmt.Println("Error...")
-		fmt.Println(".tongs_config was unable to be created in your home directory.")
-		fmt.Println("This could be due to a file permissions issue, or if the config")
-		fmt.Println("file already exists.")
+		fmt.Println("tongs.cfg already exists.")
 	}
 }
 

@@ -1,19 +1,30 @@
 tongs
 ================================
-Command line tool for interacting with [Atlassian Crucible](https://www.atlassian.com/software/crucible/overview).
-Uses a simple template file to define out groups of users you always put on code reviews, enabling you to quickly
-create and update code reviews without remembering who to add. (Not to mention saving you a bunch of time!)
-Usage
+Usage: tongs [OPTION] [TEMPLATE] [REVIEW-ID]
+
+Utility for creating code reviews quickly
+in [Crucible](https://www.atlassian.com/software/crucible/overview) based on predefined templates.
+
+Options:
+setup
+token
+templates
+templates [TEMPLATE]
+create [TEMPLATE]
+update [TEMPLATE] [REVIEW-ID]
+
+Examples
 --------------------------------
-    tongs create <template-name>
-    
-    Example: tongs create myteam
+
+    tongs create [TEMPLATE]
+
+    Example: tongs create javateam
 
 Creates a new code review draft for the users in the given config section.
-The end user then just has to go to Crucible, add the desired revisions
-to the review and start it.
+The user then just has to go to Crucible, add the desired revisions
+to the review, and start it.
 
-    tongs update <template-name> <code-review-id>
+    update [TEMPLATE] [REVIEW-ID]
     
     Example: tongs update javateam CODEREVIEW-1001
 
@@ -22,32 +33,32 @@ provided. You must be the author of the code review in order to run this
 command. Users that were already on the review will be ignored, allowing
 the creation of overlapping groups as needed.
 
-Setup
+Building From Source
 --------------------------------
-Tongs is written in [Golang](http://golang.org/). Golang code can be compiled on
-Windows, Mac, Linux etc.. just as long as Go is installed.
-([Download Go here](https://code.google.com/p/go/wiki/Downloads) or 'brew install go' on a mac)
-With go installed build tongs by calling:
+Tongs is written in [Go](http://golang.org/). Go can be compiled on any archecture as long as Go is installed.
+([Download Go Here](https://code.google.com/p/go/wiki/Downloads) or 'brew install go' on Mac)
+
+Build Tongs by running:
     
     go build tongs.go
     
-This will create a new executable in the same directory. You can then move this executable (file called tongs WITHOUT the .go extension) to a folder location that is in your PATH so that it can be run from anywhere.
-
-If you just want to run the code without building it, you can call:
-
-    go run tongs.go
+This will create an executable in the source directory. Move this tongs executable to a location that is in your PATH so that it can be run from anywhere.
 
 Configuration
 ---------------------
 
-In order to use tongs you will need to create a .tongs_config file that
-exists in your home directory on your system. This has currently been verified
-on Windows and OSX to write to the correct directory for the respective OS.
-To generate a template file in your home directory, run:
+In order to use tongs you will need to create a tongs.cfg file that
+exists in your home directory on your system. This has been verified
+on Windows and Mac to write to the correct directory.
+To generate a template file in your home directory, run setup.
 
-    tongs --create-config
+    tongs setup
 
-Here is what your .tongs_config file should look like. You can add as many config sections
+This will first prompt for your Crucible Base URL. This can be found by typing the address of the Crucible
+server in a browser, and watching what url it redirects to. (i.e. http://my.crucible.com might resolve to http://my.crucible.com/viewer)
+All trailing slashes should be omitted.
+
+Here is what your tongs.cfg file should look like. You can add as many config sections
 as you need, as long as the default and settings are included. Not all fields are required for all sections
 but you can currently use project-key, duration, reviewers and title as you see fit. There is no restriction on spacing
 around the commas and equal signs. Also titles should be written without quotes of any kind.
@@ -68,16 +79,12 @@ Note: you must have at least a default project-key to create reviews. If this pr
     reviewers=userid6
 
     [settings]                                  
-    crucible-baseurl=http://crucible.company.com/basepath <--- Make sure this is the correct URL
-    crucible-username=                      <--- Leave these both
-    crucible-token=                         <--- blank for now...
+    crucible-baseurl=http://crucible.company.com/basepath
+    crucible-token=                        
     
-Once this file is created (with blank username and token) run the command
-
-    tongs --get-token
 
 This will ask you for your username and password and if it is able to successfully
-able to connect it will save the username and token to the .tongs_config file.
+able to connect it will save the username and token to the config file.
 
 Notes about the Crucible Token
 -------------------------------
@@ -101,12 +108,13 @@ https://docs.atlassian.com/fisheye-crucible/latest/wadl/crucible.html#rest-servi
 Future Development Ideas
 --------------------------------------------
 
- - [ ] Central, Github hosted, config files for teams
- - [ ] Github and SVN integration
+ - [ ] Github hosted config files for teams
+ - [ ] Github and Subversion integration
  - [x] Ability to add reviewers to existing reviews
  - [ ] Ability to see list of current reviews
+ - [x] Ability to see list of templates
  - [ ] Password Masking
- - [ ] Refactor code (ongoing)
+ - [ ] Refactor / Code Cleanup (ongoing)
 
 ## Contributing
 
