@@ -99,7 +99,16 @@ func writeConfigAtSection(section string, option string, value string) bool {
 func getConfigAtSection(option string, section string,
 	datatype string) (bool, string, string, int64, bool) {
 
-	c, _ := readTongsConfig(true)
+	var c *goconfig.ConfigFile
+	c, _ = readTongsConfig(true)
+
+	if c.HasOption(section, "url") {
+		url, _ := c.GetString(section, "url")
+		wc, _ := readTongsSharedConfig(true, url)
+		if wc.HasOption(section, option) {
+			c = wc
+		}
+	}
 
 	if c.HasOption(section, option) {
 
@@ -125,6 +134,15 @@ func readTongsConfig(exit bool) (*goconfig.ConfigFile, error) {
 	c, err := goconfig.ReadConfigFile("tongs.cfg")
 	if err != nil && exit == true {
 		exitError("Could not read tongs.cfg", err)
+	}
+	return c, err
+}
+
+func readTongsSharedConfig(exit bool, url string) (*goconfig.ConfigFile, error) {
+	c, err := goconfig.ReadWebConfigFile(url)
+	if err != nil && exit == true {
+		fmt.Println("Shared Config URL: " + url)
+		exitError("Could not read shared tongs config", err)
 	}
 	return c, err
 }

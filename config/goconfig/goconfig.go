@@ -62,6 +62,8 @@ import (
 	"strconv"
 	"strings"
     "runtime"
+    "net/http"
+    "io/ioutil"
 )
 
 // ConfigFile is the representation of configuration settings.
@@ -282,6 +284,41 @@ func ReadConfigFile(fname string) (*ConfigFile, error) {
 	}
 
 	if err := file.Close(); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func ReadWebConfigFile(url string) (*ConfigFile, error) {
+   	resp, err := http.Get(url)
+   	if err != nil {
+		return nil, err
+	}
+   	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := ioutil.TempFile(os.TempDir(), "shared_tongs_cfg")
+	defer os.Remove(file.Name())
+	file.Write(body)
+
+	if err := file.Close(); err != nil {
+		return nil, err
+	}
+	
+	f, err := os.Open(file.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	c := NewConfigFile()
+	if err := c.read(bufio.NewReader(f)); err != nil { 
+		return nil, err
+	}
+
+	if err := f.Close(); err != nil {
 		return nil, err
 	}
 
