@@ -57,16 +57,22 @@ To generate a template file in your home directory, run setup.
 
     tongs setup
 
-This will first prompt for your Crucible Base URL. This can be found by typing the address of the Crucible
-server in a browser, and watching what url it redirects to. (i.e. http://my.crucible.com might resolve to http://my.crucible.com/viewer)
+This will first prompt for your Crucible base url, username, and password.
+The Crucible base url can be found by typing the address of the Crucible
+server in a browser, and watching what url it redirects to. 
+(i.e. http://my.crucible.com might resolve to http://my.crucible.com/viewer)
 All trailing slashes should be omitted.
 
-Below is what your tongs.cfg file should look like. You can add as many config sections
-as you need, as long as the default and settings are included. Not all fields are required for all sections
-but you can currently use project-key, duration, reviewers and title as you see fit. There is no restriction on spacing
-around the commas and equal signs. Also titles should be written without quotes of any kind.
+(See 'Crucible Token' section below for more information.)
 
-Note: you must have at least a default project-key to create reviews. If this project key is invalid for the Crucible instance you are using, the review will not be created. Also, for the baseurl, add any necessary URL paths to the base URL such as /viewer if needed, just omit the trailing slash.
+Below is what your tongs.cfg file should look like. You can add as many config sections
+as you need, as long as the default and settings are included. Not all fields are required 
+for all sections but you can currently use project-key, duration, reviewers and title as you 
+see fit. There is no restriction on spacing around the commas and equal signs. Also titles 
+should be written without quotes of any kind.
+
+Note that you must have at least a default project-key to create reviews. If this project 
+key is invalid for the Crucible instance you are using, the review will not be created. 
     
 Example tongs.cfg:
 
@@ -87,9 +93,6 @@ Example tongs.cfg:
     crucible-baseurl=http://crucible.company.com/basepath
     crucible-token=                        
     
-
-This will ask you for your username and password and if it is able to successfully
-able to connect it will save the username and token to the config file.
 
 Remote Configuration
 ---------------------
@@ -136,6 +139,9 @@ Crucible Token
 Use the 'token' command to reset your token without re-entering your crucible url.
 
     tongs token
+
+This will ask you for your username and password and if it is able to successfully
+able to connect it will save the token to the config file.
 
 No password is being stored in this application, however currently there is no way to mask
 the password entry when running the 'token' and 'setup' commands. As such if you would rather 
