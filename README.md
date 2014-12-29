@@ -36,6 +36,12 @@ provided. You must be the author of the code review in order to run this
 command. Users that were already on the review will be ignored, allowing
 the creation of overlapping groups as needed.
 
+Installing
+--------------------------------
+To install Tongs, simply download the latest Tongs binary file for your 
+system from the [Releases](https://github.com/southpawlife/tongs/releases) page and place it 
+somewhere on your PATH. To update tongs, simply replace the existing binary file on your system.
+
 Building From Source
 --------------------------------
 Tongs is written in [Go](http://golang.org/). Go can be compiled on any archecture as long as Go is installed.
