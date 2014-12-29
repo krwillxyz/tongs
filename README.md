@@ -106,8 +106,8 @@ Example tongs.cfg:
     project-key=PROJECT-KEY                     
     duration=3
 
-    [my-team]                                   <--- Template name must match remote template name
-    url = https://mydomain.com/myconfig/        <--- URL pointing to a remote configuration file
+    [my-team]                               <--- Template name must match remote template name
+    url = https://mydomain.com/myconfig/    <--- URL pointing to a remote configuration file
 
     [settings]                                  
     crucible-baseurl = http://crucible.company.com/basepath
@@ -115,7 +115,7 @@ Example tongs.cfg:
 
 Example remote configuration at https://mydomain.com/myconfig/:
     
-    [my-team]                                   <--- Remote template name 
+    [my-team]                               <--- Remote template name 
     project-key = OTHER-KEY           
     reviewers = userid6,userid1,userid2,userid3,userid4       
     title = My Team Code Review Template
@@ -126,13 +126,9 @@ you wish to consume.
 The order in which the templates are honored is as follows:
 
 1. Load from the remote configuration section with the template name given
-
 2. Load from the remote configuration default section
-
 3. Load from the local configuration section with the template name given
-
 4. Load from the local configuration default section
-
 
 Crucible Token
 -------------------------------
@@ -155,9 +151,6 @@ Example Token:
 https://developer.atlassian.com/display/FECRUDEV/Authenticating+REST+Requests
 
 https://docs.atlassian.com/fisheye-crucible/latest/wadl/crucible.html#rest-service:auth-v1:login
-
-
-
 
 
 Future Development Ideas
