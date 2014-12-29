@@ -61,24 +61,26 @@ This will first prompt for your Crucible Base URL. This can be found by typing t
 server in a browser, and watching what url it redirects to. (i.e. http://my.crucible.com might resolve to http://my.crucible.com/viewer)
 All trailing slashes should be omitted.
 
-Here is what your tongs.cfg file should look like. You can add as many config sections
+Below is what your tongs.cfg file should look like. You can add as many config sections
 as you need, as long as the default and settings are included. Not all fields are required for all sections
 but you can currently use project-key, duration, reviewers and title as you see fit. There is no restriction on spacing
 around the commas and equal signs. Also titles should be written without quotes of any kind.
 
 Note: you must have at least a default project-key to create reviews. If this project key is invalid for the Crucible instance you are using, the review will not be created. Also, for the baseurl, add any necessary URL paths to the base URL such as /viewer if needed, just omit the trailing slash.
+    
+Example tongs.cfg:
 
     [default]                       
     project-key=PROJECT-KEY                     <--- Make sure to set the correct key
     duration=3
     reviewers=userid1,userid9,userid12
 
-    [my-team]                                   <--- Change this to anything you want...
+    [my-team]                                   <--- Change this to anything you want
     project-key=OTHER-KEY           
     reviewers=userid6,userid1,userid2,userid3,userid4       
     title=My Team Code Review Template
 
-    [java]                                      <--- Create as many sections as you need.
+    [java]                                      <--- Create as many sections as you need
     reviewers=userid6
 
     [settings]                                  
@@ -89,12 +91,56 @@ Note: you must have at least a default project-key to create reviews. If this pr
 This will ask you for your username and password and if it is able to successfully
 able to connect it will save the username and token to the config file.
 
-Notes about the Crucible Token
+Remote Configuration
+---------------------
+
+In many cases it makes sense to have a Tongs configuration defined once for group of users. 
+Tongs supports this by using the optional 'url' option in the local configuration.
+
+Example tongs.cfg:
+
+    [default]                       
+    project-key=PROJECT-KEY                     
+    duration=3
+
+    [my-team]                                   <--- Template name must match remote template name
+    url = https://mydomain.com/myconfig/        <--- URL pointing to a remote configuration file
+
+    [settings]                                  
+    crucible-baseurl = http://crucible.company.com/basepath
+    crucible-token = xw027966:41556:8ff7ddfgdfgl0ec44234fg9e2cb6cb                        
+
+Example remote configuration at https://mydomain.com/myconfig/:
+    
+    [my-team]                                   <--- Remote template name 
+    project-key = OTHER-KEY           
+    reviewers = userid6,userid1,userid2,userid3,userid4       
+    title = My Team Code Review Template
+
+When setting up a remote template, the local template name must match the remote template name 
+you wish to consume. 
+
+The order in which the templates are honored is as follows:
+
+1. Load from the remote configuration section with the template name given
+
+2. Load from the remote configuration default section
+
+3. Load from the local configuration section with the template name given
+
+4. Load from the local configuration default section
+
+
+Crucible Token
 -------------------------------
+Use the 'token' command to reset your token without re-entering your crucible url.
+
+    tongs token
+
 No password is being stored in this application, however currently there is no way to mask
-the password entry in this application when running the --get-token command. As such if you
-would rather get your token by some other means, here are links to the Crucible API's and
-REST services. Note that tokens don't expire so you should not have to enter your password very often.
+the password entry when running the 'token' and 'setup' commands. As such if you would rather 
+get your token by some other means, here are links to the Crucible API's and REST services. 
+Note that tokens don't expire so you should not have to enter your password very often.
 
 Example Token:
     
@@ -111,13 +157,12 @@ https://docs.atlassian.com/fisheye-crucible/latest/wadl/crucible.html#rest-servi
 Future Development Ideas
 --------------------------------------------
 
- - [ ] Github hosted config files for teams
+ - [x] Github hosted config files for teams
  - [ ] Github and Subversion integration
  - [x] Ability to add reviewers to existing reviews
  - [ ] Ability to see list of current reviews
  - [x] Ability to see list of templates
  - [ ] Password Masking
- - [ ] Refactor / Code Cleanup (ongoing)
 
 ## Contributing
 
